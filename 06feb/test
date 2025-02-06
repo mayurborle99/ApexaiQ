@@ -1,1 +1,40 @@
+import json
+
+with open('data.json', 'r') as json_file:
+    data = json.load(json_file)
+
+def test_json_data():
+
+    assert isinstance(data, dict), "The data should be a dictionary"
+    assert 'comments' in data, "'comments' key is missing in the data"
+    assert isinstance(data['comments'], list), "'comments' should be a list"
+    assert len(data['comments']) > 0, "The 'comments' list should contain at least one comment"
+    
+    first_comment = data['comments'][0]
+
+    assert 'id' in first_comment, "First comment should have 'id'"
+    assert isinstance(first_comment['id'], int), "'id' should be an integer"
+    assert 'body' in first_comment, "First comment should have 'body'"
+    assert isinstance(first_comment['body'], str), "'body' should be a string"
+    assert 'postId' in first_comment, "First comment should have 'postId'"
+    assert isinstance(first_comment['postId'], int), "'postId' should be an integer"
+    
+    assert 'likes' in first_comment, "First comment should have 'likes'"
+    assert isinstance(first_comment['likes'], int), "'likes' should be an integer"
+    
+    assert 'user' in first_comment, "First comment should have 'user'"
+    assert isinstance(first_comment['user'], dict), "'user' should be a dictionary"
+
+    user = first_comment['user']
+    assert 'id' in user, "'user' should have 'id'"
+    assert isinstance(user['id'], int), "'user id' should be an integer"
+
+    assert 'username' in user, "'user' should have 'username'"
+    assert isinstance(user['username'], str), "'username' should be a string"
+    
+    assert 'fullName' in user, "'user' should have 'fullName'"
+    assert isinstance(user['fullName'], str), "'fullName' should be a string"    
+
+    print("All assertions passed successfully.")
+
 
