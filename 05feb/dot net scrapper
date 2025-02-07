@@ -1,49 +1,104 @@
+# """Dot net Scrapper"""
 
-"""Dot net Scrapper"""
+# #import libraries
+# from selenium import webdriver
+# from selenium.webdriver.chrome.service import Service
+# from selenium.webdriver.common.by import By
+# import pandas as pd
+# import time
 
-#import libraries
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
+
+# options = webdriver.ChromeOptions()
+# options.add_argument("--headless")
+# options.add_argument("--window-size=1920,1080")
+# driver = webdriver.Chrome()
+
+# #chrome instance
+# driver.get("https://dotnet.microsoft.com/en-us/download/dotnet/8.0")
+# time.sleep(1)
+
+# # Find all tables on the page
+# tables = driver.find_elements(By.TAG_NAME, "table")
+
+# # Loop through each table and scrape data
+# for index, table in enumerate(tables):
+#     # Extract table headers
+#     try:
+#         headers = [th.text.strip() for th in table.find_elements(By.XPATH, ".//thead/tr/th")]
+#     except:
+#         headers = []
+
+#     # Extract table rows
+#     table_data = []
+#     rows = table.find_elements(By.XPATH, ".//tbody/tr")
+
+#     for row in rows:
+#         cols = row.find_elements(By.TAG_NAME, "td")
+#         col_data = [col.text.strip() for col in cols]
+#         if col_data:
+#             table_data.append(col_data)
+
+#     # Create a DataFrame and save to CSV
+#     df = pd.DataFrame(table_data, columns=headers if headers else None)
+#     csv_filename = f"dotnet_table_{index+1}.csv"
+#     df.to_csv(csv_filename, index=False)
+#     print(f"Saved: {csv_filename}")
+
+# # Close the browser
+# driver.quit()
 import pandas as pd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 import time
 
-
+# Configure WebDriver
 options = webdriver.ChromeOptions()
 options.add_argument("--headless")
-options.add_argument("--window-size=1920,1080")
 driver = webdriver.Chrome()
 
-#chrome instance
+# Open the webpage
 driver.get("https://dotnet.microsoft.com/en-us/download/dotnet/8.0")
 time.sleep(1)
 
-# Find all tables on the page
-tables = driver.find_elements(By.TAG_NAME, "table")
+# Function to scrape a table
+def scrape_table(xpath):
+    table = driver.find_element(By.XPATH, xpath)
+    rows = table.find_elements(By.XPATH, ".//tr")
 
-# Loop through each table and scrape data
-for index, table in enumerate(tables):
-    # Extract table headers
-    try:
-        headers = [th.text.strip() for th in table.find_elements(By.XPATH, ".//thead/tr/th")]
-    except:
-        headers = []
+    headers = [header.text for header in rows[0].find_elements(By.XPATH, ".//th")]
+    data = []
 
-    # Extract table rows
-    table_data = []
-    rows = table.find_elements(By.XPATH, ".//tbody/tr")
+    for row in rows[1:]:
+        cells = row.find_elements(By.XPATH, ".//th | .//td")
+        row_data = [cell.text for cell in cells]
+        data.append(row_data)
 
-    for row in rows:
-        cols = row.find_elements(By.TAG_NAME, "td")
-        col_data = [col.text.strip() for col in cols]
-        if col_data:
-            table_data.append(col_data)
+    return pd.DataFrame(data, columns=headers)
 
-    # Create a DataFrame and save to CSV
-    df = pd.DataFrame(table_data, columns=headers if headers else None)
-    csv_filename = f"dotnet_table_{index+1}.csv"
-    df.to_csv(csv_filename, index=False)
-    print(f"Saved: {csv_filename}")
+# Scrape the table
+df_1 = scrape_table("/html/body/div[6]/div[2]/div[2]/div/div[2]/div/div[1]/table[1]")
+df_2 = scrape_table("/html/body/div[6]/div[2]/div[2]/div/div[2]/div/div[1]/table[2]")
+df_3 = scrape_table("/html/body/div[6]/div[2]/div[2]/div/div[2]/div/div[1]/table[3]")
+df_4 = scrape_table("/html/body/div[6]/div[2]/div[2]/div/div[2]/div/div[2]/table[1]")
+df_5 = scrape_table("/html/body/div[6]/div[2]/div[2]/div/div[2]/div/div[2]/table[3]")
 
-# Close the browser
+def shift_values(df):
+    for i, row in df.iterrows():
+        if row.iloc[0] == row.iloc[1]:  
+            df.iloc[i, 1:-1] = row.iloc[2:].values  
+            df.iloc[i, -1] = ''  
+    return df
+
+
+df_1_fixed = shift_values(df_1)
+
+df_1_fixed.to_csv("C:\\Users\\Mayurborle\\OneDrive\\Desktop\\ApexaiQ\\assignment_3_oracle_linux.csv", index=False, header=True)
+df_2.to_csv("C:\\Users\\Mayurborle\\OneDrive\\Desktop\\ApexaiQ\\assignment_3_oracle_linux.csv", index=False, header=False, mode='a')
+df_3.to_csv("C:\\Users\\Mayurborle\\OneDrive\\Desktop\\ApexaiQ\\assignment_3_oracle_linux.csv", index=False, header=False, mode='a')
+df_4.to_csv("C:\\Users\\Mayurborle\\OneDrive\\Desktop\\ApexaiQ\\assignment_3_oracle_linux.csv", index=False, header=False, mode='a')
+df_5.to_csv("C:\\Users\\Mayurborle\\OneDrive\\Desktop\\ApexaiQ\\assignment_3_oracle_linux.csv", index=False, header=False, mode='a')
+
+
 driver.quit()
+
+print("CSV saved")
